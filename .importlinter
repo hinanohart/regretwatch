@@ -1,0 +1,41 @@
+[importlinter]
+root_package = regretwatch
+
+[importlinter:contract:base-independence]
+name = base types/claims stay dependency-free
+type = forbidden
+source_modules =
+    regretwatch._types
+    regretwatch._claims
+forbidden_modules =
+    regretwatch.oracle
+    regretwatch.regret
+    regretwatch.baselines
+    regretwatch.killgate
+    regretwatch.report
+    regretwatch.io
+    regretwatch.cli
+
+[importlinter:contract:oracle-low-layer]
+name = oracle does not import higher layers
+type = forbidden
+source_modules =
+    regretwatch.oracle
+forbidden_modules =
+    regretwatch.regret
+    regretwatch.baselines
+    regretwatch.report
+    regretwatch.cli
+
+[importlinter:contract:killgate-standalone]
+name = killgate stays numeric-only (no internal deps)
+type = forbidden
+source_modules =
+    regretwatch.killgate
+forbidden_modules =
+    regretwatch.oracle
+    regretwatch.regret
+    regretwatch.baselines
+    regretwatch.report
+    regretwatch.io
+    regretwatch.cli

@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "regretwatch.schema.v1",
+  "title": "regretwatch sample log (long form, one row per sample)",
+  "type": "object",
+  "required": ["prompt_id", "draw_order", "cost"],
+  "properties": {
+    "prompt_id": {"type": "string"},
+    "draw_order": {"type": "integer", "minimum": 0},
+    "cost": {"type": "number", "exclusiveMinimum": 0},
+    "correct": {"type": "boolean"},
+    "score": {"type": "number"},
+    "answer": {"type": "string"},
+    "gold": {"type": "string"},
+    "cost_unit": {"type": "string", "enum": ["tokens", "unit", "wall_ms"]},
+    "bucket": {"type": "object"}
+  },
+  "anyOf": [
+    {"required": ["correct"]},
+    {"required": ["score"]}
+  ],
+  "additionalProperties": true
+}

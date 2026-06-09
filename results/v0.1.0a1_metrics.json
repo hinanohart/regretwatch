@@ -1,0 +1,99 @@
+{
+  "version": "0.1.0a1",
+  "env": {
+    "python": "3.12.3",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "numpy": "2.4.6"
+  },
+  "theta1_lever": 0.8,
+  "theta2_kendall": 0.7,
+  "gates": {
+    "G1": {
+      "pass": true,
+      "excess_waste_pct": 0.0,
+      "max_regret": 0.0
+    },
+    "G2": {
+      "pass": true,
+      "monotone": true,
+      "recover_ratio": 1.0,
+      "spearman": 0.9999999999999999
+    },
+    "G3": {
+      "pass": true,
+      "heterogeneous": {
+        "std_ratio": Infinity,
+        "kendall_tau": 0.0,
+        "k2_distinguished": true,
+        "loc_jaccard": 0.23076923076923078,
+        "std_clair": 5.5213223053902585,
+        "std_fixed": 0.0
+      },
+      "homogeneous": {
+        "std_ratio": Infinity,
+        "kendall_tau": 0.0,
+        "k2_distinguished": false,
+        "loc_jaccard": 1.0,
+        "std_clair": 0.0,
+        "std_fixed": 0.0
+      },
+      "real_dump": {
+        "std_ratio": Infinity,
+        "kendall_tau": 0.0,
+        "k2_distinguished": true,
+        "loc_jaccard": 0.5294117647058824,
+        "std_clair": 1.6831618062644282,
+        "std_fixed": 0.0,
+        "realized_acc": 0.9921259842519685,
+        "excess_waste_pct": 0.3333333333333333
+      }
+    },
+    "G4": {
+      "pass": true,
+      "sha256": "d2d1824af101d71c0f3b5aae6e3fbbaf5f4f20395b875e80cace08766bac008d"
+    },
+    "G5": {
+      "pass": true,
+      "base": 1.5,
+      "scaled": 1.4999999999999996,
+      "abs_diff": 4.440892098500626e-16
+    },
+    "G6": {
+      "pass": true,
+      "clean_regret": 1.0,
+      "ci_low_noise": [
+        1.025,
+        1.275
+      ],
+      "ci_high_noise": [
+        2.6,
+        3.15
+      ],
+      "refuse_low_noise": false,
+      "refuse_high_noise": true,
+      "ci_widened": true
+    },
+    "G7": {
+      "pass": true,
+      "per_bucket_mean": {
+        "bucket=A": 14.0,
+        "bucket=B": 6.0
+      }
+    },
+    "G8": {
+      "pass": true,
+      "caveat_nonempty": true,
+      "render_requires_gap": true,
+      "label_present": true
+    }
+  },
+  "all_gates_pass": true,
+  "k_gate": {
+    "k1_lever": 1.0,
+    "k1_ok": true,
+    "k2_distinguished": true,
+    "k3_cost_driver": "stopping",
+    "ship_mode": "full"
+  },
+  "ship_decision": "SHIP"
+}

@@ -1,0 +1,61 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "regretwatch"
+version = "0.1.0a1"
+description = "Post-hoc compute-regret instrument for best-of-N / self-consistency stopping policies (offline, CPU-only)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Hinano Hart" }]
+keywords = ["llm", "test-time-compute", "best-of-n", "self-consistency", "audit", "measurement", "offline"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering",
+]
+dependencies = ["numpy>=1.23", "scipy>=1.9"]
+
+[project.optional-dependencies]
+adapters = []
+dev = ["pytest>=7", "ruff>=0.5", "mypy>=1.8", "import-linter>=2.0"]
+
+[project.scripts]
+rw = "regretwatch.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/hinanohart/regretwatch"
+Repository = "https://github.com/hinanohart/regretwatch"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/regretwatch"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "W"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+files = ["src/regretwatch"]
+plugins = []
+
+[[tool.mypy.overrides]]
+module = ["scipy.*", "ijson"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

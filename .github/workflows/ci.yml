@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test ${{ matrix.os }} py${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.10", "3.11", "3.12"]
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install (editable + dev)
+        run: uv pip install --system -e ".[dev]"
+      - name: Ruff
+        run: ruff check src tests scripts
+      - name: Mypy (strict)
+        run: mypy
+      - name: Import-linter
+        run: lint-imports
+      - name: Pytest
+        run: pytest -q
+
+  honesty:
+    name: honest-marketing + prior-art
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Banned-claim grep (rc=1 on violation)
+        run: |
+          PAT='state.of.the.art|\bSOTA\b|world.?s? first|the first (tool|library|framework|package|method|system|instrument|to |ever)|初の|fully automatic|permanent(ly)?|永続|outperform|\+[0-9]+(\.[0-9]+)?\s*%|invent(ed|s)? (the )?(renewal|prophet)'
+          HITS=$(grep -REniE "$PAT" README.md CHANGELOG.md src/ scripts/ docs/ 2>/dev/null | grep -v '# honest:ok' || true)
+          if [ -n "$HITS" ]; then echo "HONEST-MARKETING VIOLATION:"; echo "$HITS"; exit 1; fi
+          echo "honest-marketing: clean"
+      - name: Required prior-art / boundary / R1 caveat in README
+        run: |
+          grep -qiF "restartwell" README.md || { echo "MISSING BOUNDARY: restartwell"; exit 1; }
+          grep -qiF "Certified Self-Consistency" README.md || { echo "MISSING PRIOR-ART"; exit 1; }
+          grep -qiE "clairvoyan(t|ce).{0,40}(non.causal|lower bound|caveat)" README.md || { echo "MISSING R1 CAVEAT"; exit 1; }
+          echo "prior-art / boundary / caveat: present"
+      - name: Negative test (caveat removal must trip the guard)
+        run: |
+          tmp=$(mktemp); sed '/clairvoyan/Id' README.md > "$tmp"
+          if grep -qiE "clairvoyan(t|ce).{0,40}(non.causal|lower bound|caveat)" "$tmp"; then
+            echo "negative test failed: caveat still found after removal"; exit 1; fi
+          echo "negative test: guard trips when caveat removed (rc=1 path verified)"

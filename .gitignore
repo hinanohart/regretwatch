@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+# OQ3 / real-dump scratch — never bundled (datasets are downloaded on demand)
+_oq3_tmp/
+*.json.gz
+# editor
+.idea/
+.vscode/
+# build-orchestration state (not part of the package)
+.regretwatch-progress.json
+.regretwatch.lock
+uv.lock
