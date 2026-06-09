@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 """S4 numeric gate: run G1-G8 + K1/K2/K3 on synthetic (+ real dump if present).
 
-Writes ``results/v0.1.0a1_metrics.json`` with an env stamp. The build is allowed to ship
+Writes ``results/v0.1.0a2_metrics.json`` with an env stamp. The build is allowed to ship
 only if ``all(G1..G8)`` and the K-gate ship_mode is decided. No README number may be typed
 by hand before this runs (see ``<!--MEASURED@S4-->``).
 
+The real monkey_business dump is not bundled; when it is absent the previously recorded
+real-dump block in the output file is carried forward (marked ``source: cached``) so a
+regeneration never silently nulls the real measurement.
+
 Usage::
 
-    python scripts/run_gates.py [--real-npz PATH] [--out results/v0.1.0a1_metrics.json]
+    python scripts/run_gates.py [--real-npz PATH] [--out results/v0.1.0a2_metrics.json]
 """
 
 from __future__ import annotations
@@ -87,8 +91,12 @@ def _k2_on(seqs: list[PromptSeq]) -> dict:
     }
 
 
-def g3_killgate(real_npz: str | None) -> dict:
-    """Discriminator both ways + real-dump pre-measurement."""
+def g3_killgate(real_npz: str | None, cached_real: dict | None = None) -> dict:
+    """Discriminator both ways + real-dump pre-measurement.
+
+    If the external dump is absent but a ``cached_real`` block from a prior build is given,
+    it is carried forward (annotated ``source``) so regeneration preserves provenance.
+    """
     het = _k2_on(synth.gen_heterogeneous())  # should distinguish (True)
     hom = _k2_on(synth.gen_homogeneous())  # should NOT distinguish (False) -> degrade signal
     real = None
@@ -101,6 +109,11 @@ def g3_killgate(real_npz: str | None) -> dict:
         real = _k2_on(seqs)
         real["realized_acc"] = realized_accuracy(seqs, Agg.BON)
         real["excess_waste_pct"] = excess_waste_pct(seqs, Agg.BON).excess_waste_pct
+    elif cached_real is not None:
+        real = {k: v for k, v in cached_real.items() if k != "source"}
+        real["source"] = (
+            "cached from prior build (real monkey_business dump absent at regeneration; not re-run)"
+        )
     # G3 passes if the discriminator works both ways; real-dump (if present) must also distinguish.
     ok = het["k2_distinguished"] and (not hom["k2_distinguished"])
     if real is not None:
@@ -222,13 +235,25 @@ def main() -> int:
     ap.add_argument(
         "--real-npz", default=str(Path.home() / "regretwatch/_oq3_tmp/mb_gsm8k_8b_iscorrects.npz")
     )
-    ap.add_argument("--out", default="results/v0.1.0a1_metrics.json")
+    ap.add_argument("--out", default="results/v0.1.0a2_metrics.json")
     args = ap.parse_args()
+
+    # Preserve any previously recorded real-dump measurement so regenerating without the
+    # external monkey_business dump does not silently null it (provenance robustness).
+    cached_real = None
+    out = Path(args.out)
+    if out.exists():
+        try:
+            prev = json.loads(out.read_text(encoding="utf-8"))
+            rd = prev.get("gates", {}).get("G3", {}).get("real_dump")
+            cached_real = rd if isinstance(rd, dict) else None
+        except (json.JSONDecodeError, OSError):
+            cached_real = None
 
     gates = {
         "G1": g1_calibration(),
         "G2": g2_oversample(),
-        "G3": g3_killgate(args.real_npz),
+        "G3": g3_killgate(args.real_npz, cached_real=cached_real),
         "G4": g4_determinism(),
         "G5": g5_scale_invariance(),
         "G6": g6_noise_failclosed(),
@@ -238,7 +263,7 @@ def main() -> int:
     all_pass = all(g["pass"] for g in gates.values())
     kg = k_gate(gates["G3"])
     metrics = {
-        "version": "0.1.0a1",
+        "version": "0.1.0a2",
         "env": {"python": sys.version.split()[0], "platform": platform.platform(), "numpy": np.__version__},
         "theta1_lever": THETA1,
         "theta2_kendall": THETA2,

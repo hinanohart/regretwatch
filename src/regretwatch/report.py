@@ -20,6 +20,7 @@ from .baselines import (
 )
 from .oracle import clairvoyant_cost, realized_cost, realized_outcome
 from .regret import aggregate_regret, propagate_rm_noise, refuse_headline
+from .votecheck import cant_win_flags
 
 
 @dataclass(frozen=True)
@@ -46,6 +47,7 @@ def build_report(
     b: int = 2000,
     seed: int = 0,
     include_clairvoyant: bool = True,
+    experimental: bool = False,
 ) -> AuditResult:
     """Produce the audit payload with the best-fixed-N headline and honest framing."""
     waste = excess_waste_pct(seqs, agg, b=b, seed=seed)
@@ -112,6 +114,17 @@ def build_report(
                 "noncausal_residual": cr.achievable_gap,
                 "rendered": cr.render(),  # render() requires achievable_gap -> honesty by type
             }
+
+    if experimental:
+        flags = cant_win_flags(seqs)
+        payload["experimental"] = {
+            "majority_cant_win_rate": float(flags.mean()) if flags.size else 0.0,
+            "n_flagged": int(flags.sum()),
+            "note": (
+                "EXPERIMENTAL (v0.2): uncalibrated majority can't-win detector; not part of "
+                "the headline. Requires answer ids (reports 0 otherwise)."
+            ),
+        }
     return AuditResult(payload=payload)
 
 

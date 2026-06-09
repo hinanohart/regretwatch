@@ -2,6 +2,8 @@ import json
 import subprocess
 import sys
 
+import pytest
+
 from regretwatch._types import Agg
 from regretwatch.adapters import load_csv, load_monkey_business
 from regretwatch.io import load_logs, majority_uses_collapse, validate
@@ -51,6 +53,69 @@ def test_load_logs_sorts_by_draw_order(tmp_path):
     assert list(seqs[0].cost) == [1.0, 2.0, 3.0]
 
 
+def test_validate_rejects_duplicate_draw_order(tmp_path):
+    p = tmp_path / "dup.jsonl"
+    _write(
+        p,
+        [
+            {"prompt_id": "a", "draw_order": 0, "cost": 1.0, "correct": True},
+            {"prompt_id": "a", "draw_order": 0, "cost": 2.0, "correct": False},
+        ],
+    )
+    assert validate(p) is False  # draw_order documented unique-within-prompt -> fail closed
+
+
+def test_load_logs_raises_on_duplicate_draw_order(tmp_path):
+    p = tmp_path / "dup.jsonl"
+    _write(
+        p,
+        [
+            {"prompt_id": "a", "draw_order": 1, "cost": 1.0, "correct": True},
+            {"prompt_id": "a", "draw_order": 1, "cost": 2.0, "correct": False},
+        ],
+    )
+    with pytest.raises(ValueError):
+        load_logs(p)
+
+
+def test_cli_experimental_flag_surfaces_field(tmp_path):
+    p = tmp_path / "log.jsonl"
+    rows = []
+    for i in range(12):
+        for d in range(6):
+            rows.append(
+                {
+                    "prompt_id": f"p{i}",
+                    "draw_order": d,
+                    "cost": 1.0,
+                    "correct": d >= 2,
+                    "answer": "A" if d >= 2 else f"x{d}",
+                }
+            )
+    _write(p, rows)
+    out = tmp_path / "rep"
+    r = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "regretwatch.cli",
+            "audit",
+            str(p),
+            "--out",
+            str(out),
+            "--experimental",
+            "--bootstrap",
+            "100",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert r.returncode == 0, r.stderr
+    report = json.loads((out / "report.json").read_text())
+    assert "experimental" in report  # --experimental must actually do something (not a dead flag)
+    assert "majority_cant_win_rate" in report["experimental"]
+
+
 def test_majority_collapse_detected(tmp_path):
     p = tmp_path / "log.jsonl"
     _write(p, [{"prompt_id": "a", "draw_order": 0, "cost": 1.0, "correct": True}])
@@ -82,6 +147,7 @@ def test_monkey_business_adapter(tmp_path):
     seqs = load_monkey_business(p, realized_n=4)
     assert len(seqs) == 2
     assert seqs[0].prompt_id == "mb::7"
+    assert seqs[0].correct is not None
     assert list(seqs[0].correct) == [False, False, True, True]
 
 

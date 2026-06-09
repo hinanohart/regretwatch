@@ -32,6 +32,7 @@ def _audit(args: argparse.Namespace) -> int:
         rm_noise_eta=args.rm_noise_eta,
         b=args.bootstrap,
         include_clairvoyant=not args.no_clairvoyant,
+        experimental=args.experimental,
     )
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)

@@ -45,6 +45,7 @@ def _check_row(row: Any) -> str | None:
 
 def validate(path: str | Path) -> bool:
     """Validate a JSONL log against schema.v1. Returns ``True`` iff every row is valid."""
+    seen: dict[str, set[int]] = {}
     try:
         with open(path, encoding="utf-8") as fh:
             for lineno, line in enumerate(fh, 1):
@@ -60,6 +61,11 @@ def validate(path: str | Path) -> bool:
                 if err is not None:
                     print(f"line {lineno}: {err}")
                     return False
+                pid, do = row["prompt_id"], row["draw_order"]
+                if do in seen.setdefault(pid, set()):
+                    print(f"line {lineno}: duplicate draw_order {do} for prompt_id {pid!r}")
+                    return False
+                seen[pid].add(do)
     except OSError as exc:
         print(f"cannot read {path}: {exc}")
         return False
@@ -87,6 +93,9 @@ def load_logs(path: str | Path) -> list[PromptSeq]:
     seqs: list[PromptSeq] = []
     for pid, group in rows.items():
         group.sort(key=lambda r: r["draw_order"])
+        orders = [r["draw_order"] for r in group]
+        if len(set(orders)) != len(orders):
+            raise ValueError(f"prompt_id {pid!r}: duplicate draw_order values")
         cost = np.array([float(r["cost"]) for r in group])
         has_correct = all("correct" in r for r in group)
         has_score = all("score" in r for r in group)

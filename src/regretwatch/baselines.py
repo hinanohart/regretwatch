@@ -58,12 +58,17 @@ class GapReport:
 def best_fixed_n(seqs: list[PromptSeq], agg: Agg) -> tuple[int, float]:
     """Smallest fixed budget ``N*`` whose dataset accuracy matches the realized policy.
 
-    Returns ``(N*, total_cost_at_N*)``. Per-prompt regret under best-fixed-N is constant,
-    which is precisely why it cannot localize *which* prompts are wasteful (the gap the
-    clairvoyant oracle fills).
+    A fixed budget ``N`` means each prompt draws ``min(N, its length)``, so the sweep runs
+    up to the *longest* prompt (``max`` n_draws): at that budget every prompt is at full
+    length and dataset accuracy equals the realized accuracy by construction, so a match
+    always exists even for ragged (unequal-length) logs. (Sweeping only to the *shortest*
+    prompt would let ``N*`` silently default to a budget that cannot match realized
+    accuracy.) Returns ``(N*, total_cost_at_N*)``. Per-prompt regret under best-fixed-N is
+    constant, which is precisely why it cannot localize *which* prompts are wasteful (the
+    gap the clairvoyant oracle fills).
     """
     target = realized_accuracy(seqs, agg)
-    max_n = min(s.n_draws for s in seqs)
+    max_n = max(s.n_draws for s in seqs)
     nstar = max_n
     for k in range(1, max_n + 1):
         if _acc_at(seqs, k, agg) >= target - 1e-12:
@@ -73,7 +78,9 @@ def best_fixed_n(seqs: list[PromptSeq], agg: Agg) -> tuple[int, float]:
     return nstar, total
 
 
-def _boot_pct_ci(realized: npt.NDArray[np.float64], fixed: npt.NDArray[np.float64], b: int, seed: int) -> tuple[float, float]:
+def _boot_pct_ci(
+    realized: npt.NDArray[np.float64], fixed: npt.NDArray[np.float64], b: int, seed: int
+) -> tuple[float, float]:
     """Cluster bootstrap CI of the ratio (sum realized - sum fixed)/sum fixed."""
     n = realized.size
     rng = np.random.default_rng(seed)

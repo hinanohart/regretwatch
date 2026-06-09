@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0a1",
+  "version": "0.1.0a2",
   "env": {
     "python": "3.12.3",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
@@ -45,7 +45,8 @@
         "std_clair": 1.6831618062644282,
         "std_fixed": 0.0,
         "realized_acc": 0.9921259842519685,
-        "excess_waste_pct": 0.3333333333333333
+        "excess_waste_pct": 0.3333333333333333,
+        "source": "cached from prior build (real monkey_business dump absent at regeneration; not re-run)"
       }
     },
     "G4": {

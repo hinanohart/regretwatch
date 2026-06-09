@@ -57,3 +57,22 @@ def test_running_agreement_returns_acc():
     cost, acc = running_agreement(seqs, margin=3)
     assert cost > 0
     assert 0.0 <= acc <= 1.0
+
+
+def test_best_fixed_n_ragged_matches_accuracy():
+    # Ragged (unequal-length) logs: the budget sweep must reach the *longest* prompt so N*
+    # can actually match realized accuracy. Regression guard: capping the sweep at the
+    # shortest prompt silently let N* default to a budget that does NOT match (e.g. a +450%
+    # headline whose recommended N halves accuracy).
+    from regretwatch.baselines import _acc_at, realized_accuracy
+
+    a = PromptSeq("a", np.ones(1), correct=np.array([True]))  # solved at draw 1
+    b = PromptSeq("b", np.ones(10), correct=np.array([False] * 9 + [True]))  # solved at draw 10
+    seqs = [a, b]
+    target = realized_accuracy(seqs, Agg.BON)
+    nstar, _ = best_fixed_n(seqs, Agg.BON)
+    assert nstar == 10  # needs the full budget of the longest prompt to keep b solved
+    assert _acc_at(seqs, nstar, Agg.BON) >= target - 1e-12  # N* truly matches realized accuracy
+    w = excess_waste_pct(seqs, Agg.BON, b=200)
+    assert w.matched_accuracy == target
+    assert abs(w.excess_waste_pct) < 1e-9  # realized already per-prompt optimal -> 0 waste

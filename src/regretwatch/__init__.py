@@ -20,7 +20,7 @@ from .oracle import clairvoyant_cost
 from .regret import aggregate_regret, per_prompt_regret
 from .report import AuditResult, build_report, to_json, to_markdown
 
-__version__ = "0.1.0a1"
+__version__ = "0.1.0a2"
 
 __all__ = [
     "Agg",
