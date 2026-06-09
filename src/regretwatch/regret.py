@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import numpy as np
+import numpy.typing as npt
 
 from ._types import Agg, PromptSeq
 from .oracle import clairvoyant_cost, realized_cost, realized_outcome
@@ -22,7 +23,7 @@ class RegretReport:
     per_bucket: dict[str, RegretReport]
 
 
-def per_prompt_regret(seqs: list[PromptSeq], agg: Agg) -> np.ndarray:
+def per_prompt_regret(seqs: list[PromptSeq], agg: Agg) -> npt.NDArray[np.float64]:
     """``realized_cost - clairvoyant_cost`` per prompt, clipped at 0 (fail-closed)."""
     out = np.empty(len(seqs), dtype=float)
     for j, seq in enumerate(seqs):
@@ -37,7 +38,7 @@ def _bucket_key(seq: PromptSeq, keys: tuple[str, ...]) -> str:
     return "|".join(f"{k}={seq.bucket.get(k, '?')}" for k in keys)
 
 
-def _boot_ci(values: np.ndarray, b: int, seed: int) -> tuple[float, float]:
+def _boot_ci(values: npt.NDArray[np.float64], b: int, seed: int) -> tuple[float, float]:
     """Prompt-cluster percentile bootstrap (resample prompts, never draws)."""
     n = values.size
     if n == 0:

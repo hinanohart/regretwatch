@@ -11,6 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import numpy as np
+import numpy.typing as npt
 
 from ._types import Agg, PromptSeq
 from .oracle import _agg_correct, clairvoyant_cost, realized_cost, realized_outcome
@@ -72,7 +73,7 @@ def best_fixed_n(seqs: list[PromptSeq], agg: Agg) -> tuple[int, float]:
     return nstar, total
 
 
-def _boot_pct_ci(realized: np.ndarray, fixed: np.ndarray, b: int, seed: int) -> tuple[float, float]:
+def _boot_pct_ci(realized: npt.NDArray[np.float64], fixed: npt.NDArray[np.float64], b: int, seed: int) -> tuple[float, float]:
     """Cluster bootstrap CI of the ratio (sum realized - sum fixed)/sum fixed."""
     n = realized.size
     rng = np.random.default_rng(seed)

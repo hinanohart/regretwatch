@@ -10,11 +10,12 @@ See README for the contrast with Certified Self-Consistency.
 from __future__ import annotations
 
 import numpy as np
+import numpy.typing as npt
 
 from ._types import PromptSeq
 
 
-def cant_win_flags(seqs: list[PromptSeq], *, delta: float = 0.05, kmax: int | None = None) -> np.ndarray:
+def cant_win_flags(seqs: list[PromptSeq], *, delta: float = 0.05, kmax: int | None = None) -> npt.NDArray[np.bool_]:
     """Per-prompt bool: did the prompt enter a provable majority "can't win" region?
 
     Uses an anytime union Hoeffding bound on the leading-answer share. EXPERIMENTAL --

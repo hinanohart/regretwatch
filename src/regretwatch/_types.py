@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 
 
 class Agg(str, Enum):
@@ -44,10 +46,10 @@ class PromptSeq:
     """
 
     prompt_id: str
-    cost: np.ndarray
-    correct: np.ndarray | None = None
-    score: np.ndarray | None = None
-    answer: np.ndarray | None = None
+    cost: npt.NDArray[np.float64]
+    correct: npt.NDArray[np.bool_] | None = None
+    score: npt.NDArray[np.float64] | None = None
+    answer: npt.NDArray[Any] | None = None
     gold: str | None = None
     bucket: dict[str, str] = field(default_factory=dict)
 
@@ -78,5 +80,5 @@ class PromptSeq:
         return int(self.cost.size)
 
     @property
-    def cum_cost(self) -> np.ndarray:
+    def cum_cost(self) -> npt.NDArray[np.float64]:
         return np.cumsum(self.cost)

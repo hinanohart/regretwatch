@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 from scipy.stats import kendalltau as _kendalltau
 from scipy.stats import spearmanr as _spearmanr
 
@@ -33,7 +34,7 @@ class MeasurementPower:
     k2_distinguished: bool
 
 
-def _boot_total_ci(values: np.ndarray, b: int, seed: int) -> tuple[float, float]:
+def _boot_total_ci(values: npt.NDArray[np.float64], b: int, seed: int) -> tuple[float, float]:
     n = values.size
     rng = np.random.default_rng(seed)
     totals = np.empty(b, dtype=float)
@@ -44,8 +45,8 @@ def _boot_total_ci(values: np.ndarray, b: int, seed: int) -> tuple[float, float]
 
 
 def measurement_power(
-    r_clair: np.ndarray,
-    r_fixedn: np.ndarray,
+    r_clair: npt.NDArray[np.float64],
+    r_fixedn: npt.NDArray[np.float64],
     *,
     theta2: float = 0.7,
     top_frac: float = 0.1,
