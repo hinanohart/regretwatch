@@ -18,6 +18,22 @@ torch-free, MIT.
 > not claim to have originated renewal-reward or prophet inequalities; it applies a
 > clairvoyant (hindsight) lower bound as a grading oracle on logs.
 
+## How it works
+
+```mermaid
+flowchart TD
+    logs[JSONL eval log\nschema.v1] --> validate[validate\nfail-closed schema check]
+    validate --> load[load_logs\nparse PromptSeq list]
+    load --> oracle[oracle\nclairvoyant_cost\nrealized_cost]
+    load --> baselines[baselines\nbest_fixed_N\nexcess_waste_pct\nachievable_gap]
+    oracle --> regret[regret\nper_prompt_regret\naggregate_regret\nbootstrap CI]
+    baselines --> report[build_report\nAuditResult payload]
+    regret --> report
+    report --> cli_out[rw audit\nreport.json + report.md]
+    report --> py_out[Python API\nresult.payload]
+    adapters[adapters\nlm_eval / verl / monkey_business\ngeneric_csv / simple_evals] --> load
+```
+
 ## Install
 
 ```bash
@@ -49,6 +65,18 @@ Required: `prompt_id`, `draw_order` (int ≥ 0, unique within a prompt), `cost` 
 least one of `correct` (bool) or `score` (float); `answer`/`gold` enable true majority vote.
 When `cost` is a unit count rather than tokens, percentages are reported in **draw-count
 terms, not token economics**.
+
+### Log adapters
+
+regretwatch ships converters for common eval frameworks so you can audit logs you already produce:
+
+| Adapter | Source format |
+|---|---|
+| `lm_eval` | lm-evaluation-harness JSONL output |
+| `verl` | VERL RLVR rollout logs |
+| `monkey_business` | ScalingIntelligence/monkey_business HuggingFace dataset |
+| `simple_evals` | OpenAI simple-evals output |
+| `generic_csv` | Any CSV with required columns |
 
 ## What it measures
 
@@ -89,6 +117,21 @@ gate is **non-vacuous**: on a homogeneous control where the oracle is *also* con
 reports *not distinguished* (no localization power). This config is homogeneously easy
 (99% accuracy), so the gate's binding heterogeneity test runs on synthetic data; the real
 dump confirms the headline and per-prompt variance are non-degenerate on real logs.
+
+## CLI reference
+
+```
+rw demo                                        # run synthetic audit and print markdown report
+rw validate <log.jsonl>                        # schema check only; exits 0=VALID, 1=INVALID
+rw audit <log.jsonl>                           # full audit; writes report.json + report.md
+  --out <dir>          output directory (default: report/)
+  --agg <bon|majority> aggregation mode (default: bon)
+  --bucket <k1,k2>     comma-separated bucket keys for stratification
+  --cost-unit <tokens|unit|wall_ms>
+  --bootstrap <N>      bootstrap resamples (default: 2000)
+  --no-clairvoyant     omit clairvoyant decomposition
+  --experimental       enable v0.2 experimental can't-win check
+```
 
 ## Honesty / limits
 
