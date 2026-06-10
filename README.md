@@ -12,28 +12,6 @@ deployed stopping policy spent versus what was actually needed. The headline is 
 with an honest clairvoyant↔achievable decomposition. CPU-only, `numpy`/`scipy`,
 torch-free, MIT.
 
-> regretwatch is a **measurement instrument**: it reports on existing logs and does not
-> rewrite any stopping policy at runtime. The positioning is
-> _"post-hoc compute-regret instrument + honest achievable↔clairvoyant framing"_ — it does
-> not claim to have originated renewal-reward or prophet inequalities; it applies a
-> clairvoyant (hindsight) lower bound as a grading oracle on logs.
-
-## How it works
-
-```mermaid
-flowchart TD
-    logs[JSONL eval log<br>schema.v1] --> validate[validate<br>fail-closed schema check]
-    validate --> load[load_logs<br>parse PromptSeq list]
-    load --> oracle[oracle<br>clairvoyant_cost<br>realized_cost]
-    load --> baselines[baselines<br>best_fixed_N<br>excess_waste_pct<br>achievable_gap]
-    oracle --> regret[regret<br>per_prompt_regret<br>aggregate_regret<br>bootstrap CI]
-    baselines --> report[build_report<br>AuditResult payload]
-    regret --> report
-    report --> cli_out[rw audit<br>report.json + report.md]
-    report --> py_out[Python API<br>result.payload]
-    adapters[adapters<br>monkey_business / generic_csv] --> load
-```
-
 ## Install
 
 ```bash
@@ -77,6 +55,22 @@ regretwatch ships two working adapters; the others are v0.2 stubs (raise `NotImp
 | `lm_eval` | lm-evaluation-harness JSONL output | v0.2 stub |
 | `verl` | VERL RLVR rollout logs | v0.2 stub |
 | `simple_evals` | OpenAI simple-evals output | v0.2 stub |
+
+## How it works
+
+```mermaid
+flowchart TD
+    logs[JSONL eval log<br>schema.v1] --> validate[validate<br>fail-closed schema check]
+    validate --> load[load_logs<br>parse PromptSeq list]
+    load --> oracle[oracle<br>clairvoyant_cost<br>realized_cost]
+    load --> baselines[baselines<br>best_fixed_N<br>excess_waste_pct<br>achievable_gap]
+    oracle --> regret[regret<br>per_prompt_regret<br>aggregate_regret<br>bootstrap CI]
+    baselines --> report[build_report<br>AuditResult payload]
+    regret --> report
+    report --> cli_out[rw audit<br>report.json + report.md]
+    report --> py_out[Python API<br>result.payload]
+    adapters[adapters<br>monkey_business / generic_csv] --> load
+```
 
 ## What it measures
 
@@ -143,25 +137,32 @@ rw audit <log.jsonl>                           # full audit; writes report.json 
 - Results are per-bucket; no i.i.d. assumption across tasks/models/temperatures.
 - Majority vote without answer ids uses a collapse worst-case lower bound.
 
+> regretwatch is a **measurement instrument**: it reports on existing logs and does not
+> rewrite any stopping policy at runtime. It applies a clairvoyant (hindsight) lower bound
+> as a grading oracle on logs — it does not claim to have originated renewal-reward or
+> prophet inequalities.
+
 ### Prior art and boundaries
 
 The online side of this problem is well studied — adaptive inference-time compute,
 optimal-stopping and bandit allocation for best-of-N, and **Certified Self-Consistency**
 (arXiv:2510.17472) and related work (CGES arXiv:2511.02603, CISC arXiv:2502.06233). Those
 decide *online* how many samples to draw. regretwatch is **offline**: it grades an
-already-deployed policy after the fact. The experimental majority "can't-win" check
-(`--experimental`, v0.2) is where regretwatch touches the certified-self-consistency
-question; it surfaces an uncalibrated can't-win rate in a separate `experimental` payload
-field and is deliberately kept out of the headline.
+already-deployed policy after the fact.
+
+The experimental majority "can't-win" check (`--experimental`, v0.2) is where regretwatch
+touches the certified-self-consistency question; it surfaces an uncalibrated can't-win rate
+in a separate `experimental` payload field and is deliberately kept out of the headline.
 
 regretwatch shares the renewal-reward toolbox with **restartwell** (concept, same org) but
-audits a different receiver. restartwell: agent hang/restart logs + Luby/fixed-cutoff
-RESTART policy + restart-effectiveness cutoff τ\* (continue/restart decision, agent
-reliability). regretwatch: best-of-N / self-consistency sampling logs + grades an
-already-deployed stopping policy + prophet/matched-accuracy grading oracle + compute-regret
-(test-time compute). Same theorem family, orthogonal log type / oracle / output — the org's
-accepted "same-theorem / orthogonal-receiver" split (cf. chronospect / parsimony / beladymem
-all touching memory).
+audits a different receiver:
+
+- **restartwell**: agent hang/restart logs + Luby/fixed-cutoff RESTART policy + restart-effectiveness cutoff τ\* (continue/restart decision, agent reliability)
+- **regretwatch**: best-of-N / self-consistency sampling logs + grades an already-deployed stopping policy + prophet/matched-accuracy grading oracle + compute-regret (test-time compute)
+
+Same theorem family, orthogonal log type / oracle / output — the org's accepted
+"same-theorem / orthogonal-receiver" split (cf. chronospect / parsimony / beladymem all
+touching memory).
 
 ## License
 
