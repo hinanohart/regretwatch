@@ -31,7 +31,7 @@ flowchart TD
     regret --> report
     report --> cli_out[rw audit<br>report.json + report.md]
     report --> py_out[Python API<br>result.payload]
-    adapters[adapters<br>lm_eval / verl / monkey_business<br>generic_csv / simple_evals] --> load
+    adapters[adapters<br>monkey_business / generic_csv] --> load
 ```
 
 ## Install
@@ -68,15 +68,15 @@ terms, not token economics**.
 
 ### Log adapters
 
-regretwatch ships converters for common eval frameworks so you can audit logs you already produce:
+regretwatch ships two working adapters; the others are v0.2 stubs (raise `NotImplementedError` — convert their formats to schema.v1 JSONL and use `regretwatch.io.load_logs` in the meantime):
 
-| Adapter | Source format |
-|---|---|
-| `lm_eval` | lm-evaluation-harness JSONL output |
-| `verl` | VERL RLVR rollout logs |
-| `monkey_business` | ScalingIntelligence/monkey_business HuggingFace dataset |
-| `simple_evals` | OpenAI simple-evals output |
-| `generic_csv` | Any CSV with required columns |
+| Adapter | Source format | Status |
+|---|---|---|
+| `monkey_business` | ScalingIntelligence/monkey_business HuggingFace dataset | v0.1 implemented |
+| `generic_csv` | Any CSV with required columns | v0.1 implemented |
+| `lm_eval` | lm-evaluation-harness JSONL output | v0.2 stub |
+| `verl` | VERL RLVR rollout logs | v0.2 stub |
+| `simple_evals` | OpenAI simple-evals output | v0.2 stub |
 
 ## What it measures
 
@@ -125,7 +125,7 @@ rw demo                                        # run synthetic audit and print m
 rw validate <log.jsonl>                        # schema check only; exits 0=VALID, 1=INVALID
 rw audit <log.jsonl>                           # full audit; writes report.json + report.md
   --out <dir>          output directory (default: report/)
-  --agg <bon|majority> aggregation mode (default: bon)
+  --agg <bon|majority|verifier_rerank> aggregation mode (default: bon)
   --bucket <k1,k2>     comma-separated bucket keys for stratification
   --cost-unit <tokens|unit|wall_ms>
   --bootstrap <N>      bootstrap resamples (default: 2000)
