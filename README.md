@@ -58,19 +58,9 @@ regretwatch ships two working adapters; the others are v0.2 stubs (raise `NotImp
 
 ## How it works
 
-```mermaid
-flowchart TD
-    logs[JSONL eval log<br>schema.v1] --> validate[validate<br>fail-closed schema check]
-    validate --> load[load_logs<br>parse PromptSeq list]
-    load --> oracle[oracle<br>clairvoyant_cost<br>realized_cost]
-    load --> baselines[baselines<br>best_fixed_N<br>excess_waste_pct<br>achievable_gap]
-    oracle --> regret[regret<br>per_prompt_regret<br>aggregate_regret<br>bootstrap CI]
-    baselines --> report[build_report<br>AuditResult payload]
-    regret --> report
-    report --> cli_out[rw audit<br>report.json + report.md]
-    report --> py_out[Python API<br>result.payload]
-    adapters[adapters<br>monkey_business / generic_csv] --> load
-```
+<div align="center">
+  <img src="docs/architecture.png" alt="regretwatch architecture" width="840">
+</div>
 
 ## What it measures
 
@@ -167,3 +157,4 @@ touching memory).
 ## License
 
 MIT — see [LICENSE](LICENSE). © 2026 the hinanohart org.
+

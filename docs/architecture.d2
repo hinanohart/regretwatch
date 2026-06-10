@@ -1,0 +1,48 @@
+direction: down
+explanation: |md
+  ### regretwatch
+  **Offline post-hoc compute-regret instrument for best-of-N / self-consistency / RLVR-rollout stopping policies.**
+| {near: top-center}
+
+input_zone: "Inputs" {
+  style: {fill: "#fffbeb"; stroke: "#f59e0b"; font-color: "#92400e"; bold: true; font-size: 16}
+  logs: "① JSONL eval log\nschema.v1" {shape: cylinder; style: {fill: "#fef3c7"; font-color: "#92400e"}}
+  adapters: "adapters\nmonkey_business / generic_csv" {style: {fill: "#fef3c7"; font-color: "#92400e"}}
+}
+
+validate: "② validate\nfail-closed schema check" {style: {fill: "#0ea5e9"; font-color: "#ffffff"; stroke: "#0369a1"; bold: true; font-size: 18}}
+
+load: "③ load_logs\nparse PromptSeq list" {style: {fill: "#0ea5e9"; font-color: "#ffffff"; stroke: "#0369a1"; bold: true; font-size: 18}}
+
+analysis_zone: "Analysis" {
+  style: {fill: "#f0fdf4"; stroke: "#10b981"; font-color: "#065f46"; bold: true; font-size: 16}
+  oracle: "④ oracle\nclairvoyant_cost\nrealized_cost" {style: {fill: "#dcfce7"; font-color: "#065f46"}}
+  baselines: "④ baselines\nbest_fixed_N\nexcess_waste_pct\nachievable_gap" {style: {fill: "#dcfce7"; font-color: "#065f46"}}
+  regret: "⑤ regret\nper_prompt_regret\naggregate_regret\nbootstrap CI" {style: {fill: "#dcfce7"; font-color: "#065f46"}}
+}
+
+report: "⑥ build_report\nAuditResult payload" {style: {fill: "#0ea5e9"; font-color: "#ffffff"; stroke: "#0369a1"; bold: true; font-size: 18}}
+
+output_zone: "Outputs" {
+  style: {fill: "#fdf2f8"; stroke: "#ec4899"; font-color: "#9d174e"; bold: true; font-size: 16}
+  cli_out: "⑦ rw audit\nreport.json + report.md" {shape: cylinder; style: {fill: "#fdf2f8"; font-color: "#9d174e"}}
+  py_out: "⑦ Python API\nresult.payload" {style: {fill: "#fdf2f8"; font-color: "#9d174e"}}
+}
+
+input_zone.logs -> validate: "① ingest"
+input_zone.adapters -> load: "② adapt"
+validate -> load: "③ parse"
+load -> analysis_zone.oracle: "④ analyze"
+load -> analysis_zone.baselines: "④ baseline"
+analysis_zone.oracle -> analysis_zone.regret: "⑤ compute"
+analysis_zone.baselines -> report: "⑥ build"
+analysis_zone.regret -> report: "⑥ build"
+report -> output_zone.cli_out: "⑦ write"
+report -> output_zone.py_out: "⑦ return"
+
+legend: "Legend" {
+  near: bottom-center
+  style: {fill: "#f8fafc"; stroke: "#cbd5e1"; font-size: 13}
+  e: "● entry"; c: "● core"; p: "● processing"; b: "● external"; d: "● output"
+  e.style.font-color: "#4338ca"; c.style.font-color: "#0369a1"; p.style.font-color: "#10b981"; b.style.font-color: "#f59e0b"; d.style.font-color: "#ec4899"
+}
