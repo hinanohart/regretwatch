@@ -22,16 +22,16 @@ torch-free, MIT.
 
 ```mermaid
 flowchart TD
-    logs[JSONL eval log\nschema.v1] --> validate[validate\nfail-closed schema check]
-    validate --> load[load_logs\nparse PromptSeq list]
-    load --> oracle[oracle\nclairvoyant_cost\nrealized_cost]
-    load --> baselines[baselines\nbest_fixed_N\nexcess_waste_pct\nachievable_gap]
-    oracle --> regret[regret\nper_prompt_regret\naggregate_regret\nbootstrap CI]
-    baselines --> report[build_report\nAuditResult payload]
+    logs[JSONL eval log<br>schema.v1] --> validate[validate<br>fail-closed schema check]
+    validate --> load[load_logs<br>parse PromptSeq list]
+    load --> oracle[oracle<br>clairvoyant_cost<br>realized_cost]
+    load --> baselines[baselines<br>best_fixed_N<br>excess_waste_pct<br>achievable_gap]
+    oracle --> regret[regret<br>per_prompt_regret<br>aggregate_regret<br>bootstrap CI]
+    baselines --> report[build_report<br>AuditResult payload]
     regret --> report
-    report --> cli_out[rw audit\nreport.json + report.md]
-    report --> py_out[Python API\nresult.payload]
-    adapters[adapters\nlm_eval / verl / monkey_business\ngeneric_csv / simple_evals] --> load
+    report --> cli_out[rw audit<br>report.json + report.md]
+    report --> py_out[Python API<br>result.payload]
+    adapters[adapters<br>lm_eval / verl / monkey_business<br>generic_csv / simple_evals] --> load
 ```
 
 ## Install
